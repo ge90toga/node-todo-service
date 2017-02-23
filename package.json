@@ -4,17 +4,20 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start":"node server/server.js",
-    "test": "mocha server/**/*.test.js"
+    "start": "node server/server.js",
+    "test": "export NODE_ENV=test && mocha server/**/*.test.js",
+    "test-watch": "nodemon --exec 'npm test'"
   },
   "engines": {
-    "node":"7.4.0"
+    "node": "7.4.0"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.15.2",
     "express": "^4.14.0",
+    "express-fileupload": "^0.1.1",
+    "lodash": "^4.17.4",
     "mongodb": "^2.2.5",
     "mongoose": "^4.5.9"
   },
