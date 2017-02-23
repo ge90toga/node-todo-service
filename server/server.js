@@ -20,6 +20,7 @@ app.use(bodyParser.json());
 app.use(express.static(__dirname + '/public'));
 app.use(fileUpload());
 
+
 app.post('/todos', (req, res) => {
     var todo = new Todo({
         text: req.body.text
@@ -102,7 +103,7 @@ app.patch('/todos/:id', (req, res) => {
     })
 });
 
-//file upload
+//image upload
 app.post('/upload_img', function (req, res) {
     if (!req.files)
         return res.status(400).send({status: "FAIL", error:'file doest not exist'});
