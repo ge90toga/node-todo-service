@@ -8,27 +8,31 @@
 
 const _ = require('lodash');
 const {ObjectID} = require('mongodb');
+var {fileModel} = require('../models/file');
+var {mongoose} = require('../db/mongoose');
+
 
 var saveFile = (file, path, types, hash = true) => {
     return new Promise((resolve, reject) => {
         if (!(file && file.name)) {
-            return reject({"error": "file name not provided"});
-
+            reject({"error": "file name not provided"});
+            return;
         }
 
         let re = /(?:\.([^.]+))?$/;
         let ext = re.exec(file.name)[1]; // get the file extension name
 
         if (!ext) {
-            return reject({"error": "file extension not provided"});
-
+            reject({"error": "file extension not provided"});
+            return;
         }
 
         //if types restriction specified, check if the given file is allowed
         if (types) {
             // if extension name is not contained in the type list
             if (!_.includes(types, ext)) {
-                return reject({"error": "file extension not allowed, allowed types " + types.toString()});
+                reject({"error": "file extension not allowed, allowed types " + types.toString()});
+                return;
 
             }
         }
@@ -37,16 +41,36 @@ var saveFile = (file, path, types, hash = true) => {
         // save the file
         file.mv(path + id + '.' + ext, (err) => {
             if (err) {
-                return reject({"error": err});
+                reject({"error": err});
+                return;
             }
         });
 
-        resolve({id});
+        resolve({id, ext});
 
     });
 };
 
+var saveFileInfo = (id, path, creator) => {
+    return new Promise((resolve, reject) => {
+        let file = new fileModel({
+            filePath: path,
+            createdAt: new Date().getTime(),
+            _creator: creator
+        });
+
+        file.save().then(() => {
+            resolve({id});
+        }).catch((err) => {
+            reject(err);
+        });
+    });
+
+
+};
+
 
 module.exports = {
-    saveFile
+    saveFile,
+    saveFileInfo
 };

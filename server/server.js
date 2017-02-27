@@ -2,17 +2,19 @@ require('./config/config');
 
 const _ = require('lodash');
 const express = require('express');
-const fileUpload = require('express-fileupload');
 const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
+const fileUpload = require('express-fileupload');
 
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
+var {fileModel} = require('./models/file');
+
 var {authenticate} = require('./middleware/authentication');
 
 // load service
-var fileService = require('./service/file-service');
+var {saveFile, saveFileInfo} = require('./service/file-service');
 
 
 var app = express();
@@ -170,17 +172,20 @@ app.delete('/users/me/token', authenticate, (req, res) => {
 
 
 //image upload
-app.post('/upload_img', (req, res) => {
+app.post('/upload_img', authenticate, (req, res) => {
     //console.log(req.param('name')); get text form data
     if (!req.files)
-        return res.status(400).send({status: "FAIL", error: 'file doest not exist'});
+        return res.status(400).send({status: "FAIL", error: 'file does not exist'});
 
     let file = req.files.uploadfile;
 
-    fileService.saveFile(file, __dirname + '/public/img/', ['jpg', 'png', 'jpeg']).then((result) => {
+    saveFile(file, __dirname + '/public/img/', ['jpg', 'png', 'jpeg']).then((result) => {
+        return saveFileInfo(result.id, `/img/${result.id}.${result.ext}`, req.user._id);
+    }).then((result) => {
         result.status = 'SUCCESS';
         res.send(result);
-    }, (err) => {
+    }).catch((err) => {
+        console.log(err);
         err.status = 'FAIL';
         return res.status(400).send(err);
     });
